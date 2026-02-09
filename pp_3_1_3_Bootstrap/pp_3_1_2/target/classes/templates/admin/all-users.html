@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand py-3" style="background-color: #0f0f0f;">
+    <div class="container-fluid">
+        <div class="navbar-text me-auto text-white">
+            <strong class="text-white">
+                <span th:text="${userInfo.username}"></span> :
+                <span th:each="role : ${userInfo.roles}" th:text="' ' + ${role.role} + ' '"></span>
+            </strong>
+        </div>
+        <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 d-md-block bg-light border-end p-3 min-vh-100">
+            <a class="btn btn-outline-primary w-100 mb-2 d-block px-4" href="/admin">Admin Panel</a>
+            <a class="btn btn-outline-primary w-100 mb-2 d-block px-4" href="/user">User Info Page</a>
+        </div>
+
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="mb-4">
+                <h2 class="mb-3">Users</h2>
+                <div class="d-flex gap-2 justify-content-start mb-4">
+                    <button id="showUsers" class="btn btn-outline-primary px-4 py-2 active" onclick="showSection('users')">All Users</button>
+                    <button id="showAdd" class="btn btn-outline-primary px-4 py-2" onclick="showSection('add')">Add User</button>
+                </div>
+            </div>
+
+            <div id="usersSection" class="section">
+                <div class="card-body p-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Surname</th>
+                                <th>Department</th>
+                                <th>Salary</th>
+                                <th>Login</th>
+                                <th>Password</th>
+                                <th>Role</th>
+                                <th>Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${allUsers}">
+                                <td th:text="${user.id}"></td>
+                                <td th:text="${user.firstName}"></td>
+                                <td th:text="${user.secondName}"></td>
+                                <td th:text="${user.department}"></td>
+                                <td th:text="${user.salary}"></td>
+                                <td th:text="${user.username}"></td>
+                                <td th:text="${user.password}"></td>
+                                <td>
+                                    <span th:each="role : ${user.roles}" th:text="' ' + ${role.role} + ' '"></span>
+                                </td>
+
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-primary me-1"
+                                                th:data-user-id="${user.id}"
+                                                th:data-first-name="${user.firstName}"
+                                                th:data-second-name="${user.secondName}"
+                                                th:data-department="${user.department}"
+                                                th:data-salary="${user.salary}"
+                                                th:data-username="${user.username}"
+                                                th:data-role="${#strings.listJoin(user.roles, ', ')}"
+                                                onclick="openUpdateModal(this)">Update</button>
+
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                th:data-user-id="${user.id}"
+                                                th:data-first-name="${user.firstName}"
+                                                th:data-second-name="${user.secondName}"
+                                                th:data-department="${user.department}"
+                                                th:data-salary="${user.salary}"
+                                                th:data-username="${user.username}"
+                                                th:data-role="${#strings.listJoin(user.roles, ', ')}"
+                                                onclick="openDeleteModal(this)">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="addSection" class="section" style="display: none;">
+                <div class="card mx-auto" style="max-width: 450px;">
+                    <div class="card-header bg-primary text-white text-center py-3">
+                        <h5 class="mb-0 fw-bold">Add new user!</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <form th:action="@{/admin/saveUser}" method="post" th:object="${user}">
+                            <input type="hidden" name="id" th:value="*{id}" />
+
+                            <div class="mb-3 text-center">
+                                <label for="firstName" class="form-label d-block fw-bold fs-6 mb-1 text-dark">First name</label>
+                                <input type="text" th:field="*{firstName}" id="firstName" class="form-control" style="max-width: 350px; margin: 0 auto; display: block;">
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label for="secondName" class="form-label d-block fw-bold fs-6 mb-1 text-dark">Last Name</label>
+                                <input type="text" th:field="*{secondName}" id="secondName" class="form-control" style="max-width: 350px; margin: 0 auto; display: block;">
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block fw-bold fs-6 mb-1 text-dark">Department</label>
+                                <label>
+                                    <select th:field="*{department}" class="form-select" style="max-width: 350px; margin: 0 auto; display: block;">
+                                        <option value="">Choose department</option>
+                                        <option value="IT">IT</option>
+                                        <option value="HR">HR</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Marketing">Marketing</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block fw-bold fs-6 mb-1 text-dark">Salary</label>
+                                <label>
+                                    <input type="number" th:field="*{salary}" class="form-control" style="max-width: 350px; margin: 0 auto; display: block;">
+                                </label>
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block fw-bold fs-6 mb-1 text-dark">Login</label>
+                                <label>
+                                    <input type="text" th:field="*{username}" class="form-control" style="max-width: 350px; margin: 0 auto; display: block;">
+                                </label>
+                            </div>
+
+                            <div class="mb-3 text-center">
+                                <label class="form-label d-block fw-bold fs-6 mb-1 text-dark">Password</label>
+                                <label>
+                                    <input type="password" th:field="*{password}" class="form-control" style="max-width: 350px; margin: 0 auto; display: block;" placeholder="Без изменений=старый пароль">
+                                </label>
+                            </div>
+
+                            <div class="mb-4 text-center">
+                                <label class="form-label d-block fw-bold fs-6 mb-2 text-dark">Roles</label>
+                                <div class="d-inline-block text-start">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="role" value="ROLE_USER" id="roleUser"
+                                               th:checked="${user.hasRole('ROLE_USER')}">
+                                        <label class="form-check-label" for="roleUser">User</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="role" value="ROLE_ADMIN" id="roleAdmin"
+                                               th:checked="${user.hasRole('ROLE_ADMIN')}">
+                                        <label class="form-check-label" for="roleAdmin">Admin</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success px-4 py-2 fs-6 fw-bold w-100 mb-2">Add User!</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="updateModalTitle">Update User Info</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/admin/saveUser}" method="post">
+                <input type="hidden" name="id" id="editUserId">
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editFirstName" class="form-label fw-bold">Name:</label>
+                        <input type="text" name="firstName" id="editFirstName" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSecondName" class="form-label fw-bold">Surname:</label>
+                        <input type="text" name="secondName" id="editSecondName" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDepartment" class="form-label fw-bold">Department:</label>
+                        <select name="department" id="editDepartment" class="form-select">
+                            <option value="">Выберете департамент</option>
+                            <option value="IT">IT</option>
+                            <option value="HR">HR</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSalary" class="form-label fw-bold">Salary:</label>
+                        <input type="number" name="salary" id="editSalary" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editUsername" class="form-label fw-bold">Login:</label>
+                        <input type="text" name="username" id="editUsername" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPassword" class="form-label fw-bold">Password:</label>
+                        <input type="password" name="password" id="editPassword" class="form-control" placeholder="Без изменений=старый пароль">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold d-block">Roles:</label>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="role" value="ROLE_USER" id="editRoleUser"
+                                   th:checked="${user.hasRole('ROLE_USER')}">
+                            <label class="form-check-label" for="editRoleUser">
+                                User
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="role" value="ROLE_ADMIN" id="editRoleAdmin"
+                                   th:checked="${user.hasRole('ROLE_ADMIN')}">
+                            <label class="form-check-label" for="editRoleAdmin">
+                                Admin
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalTitle">Delete User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ID:</label>
+                    <label for="deleteUserIdDisplay"></label><input type="text" id="deleteUserIdDisplay" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Name:</label>
+                    <label for="deleteUserName"></label><input type="text" id="deleteUserName" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Surname:</label>
+                    <label for="deleteUserSecondName"></label><input type="text" id="deleteUserSecondName" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Department:</label>
+                    <label for="deleteUserDept"></label><input type="text" id="deleteUserDept" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Salary:</label>
+                    <label for="deleteUserSalary"></label><input type="number" id="deleteUserSalary" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Login:</label>
+                    <label for="deleteUserLogin"></label><input type="text" id="deleteUserLogin" class="form-control bg-light" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Role:</label>
+                    <label for="deleteUserRole"></label><input type="text" id="deleteUserRole" class="form-control bg-light" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form th:action="@{/admin/deleteUser}" method="post" style="display: inline;">
+                    <input type="hidden" name="id" id="deleteUserId">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+    function openDeleteModal(button) {
+        const userId = button.getAttribute('data-user-id');
+        const firstName = button.getAttribute('data-first-name');
+        const secondName = button.getAttribute('data-second-name');
+        const department = button.getAttribute('data-department') || '';
+        const salary = button.getAttribute('data-salary') || '';
+        const username = button.getAttribute('data-username') || '';
+        const rawRoles = button.getAttribute('data-role') || '';
+
+        const regex = /'([^']+)'/g;
+        let match;
+        const rolesFound = [];
+
+        while ((match = regex.exec(rawRoles)) !== null) {
+            rolesFound.push(match[1]);
+        }
+
+
+        document.getElementById('deleteUserId').value = userId;
+        document.getElementById('deleteUserIdDisplay').value = userId;
+        document.getElementById('deleteUserName').value = firstName;
+        document.getElementById('deleteUserSecondName').value = secondName;
+        document.getElementById('deleteUserDept').value = department;
+        document.getElementById('deleteUserSalary').value = salary;
+        document.getElementById('deleteUserLogin').value = username;
+        document.getElementById('deleteUserRole').value = rolesFound.length > 0
+            ? rolesFound.join(', ')
+            : 'No roles';
+
+
+
+        document.getElementById('deleteModalTitle').textContent = `Удалить: ${firstName} ${secondName}`;
+
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    function openUpdateModal(button) {
+        const userId = button.getAttribute('data-user-id');
+        const firstName = button.getAttribute('data-first-name');
+        const secondName = button.getAttribute('data-second-name');
+        const department = button.getAttribute('data-department') || '';
+        const salary = button.getAttribute('data-salary') || '';
+        const username = button.getAttribute('data-username') || '';
+        const role = button.getAttribute('data-role') || '';
+
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editFirstName').value = firstName || '';
+        document.getElementById('editSecondName').value = secondName || '';
+        document.getElementById('editDepartment').value = department;
+        document.getElementById('editSalary').value = salary;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editPassword').value = '';
+
+        const userCheckbox = document.getElementById('editRoleUser');
+        const adminCheckbox = document.getElementById('editRoleAdmin');
+
+        if (userCheckbox) {
+            userCheckbox.checked = role.includes('ROLE_USER');
+        }
+        if (adminCheckbox) {
+            adminCheckbox.checked = role.includes('ROLE_ADMIN');
+        }
+
+        document.getElementById('updateModalTitle').textContent = `Update: ${firstName} ${secondName}`;
+
+        new bootstrap.Modal(document.getElementById('updateModal')).show();
+    }
+
+    function showSection(sectionName, button) {
+
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.display = 'none';
+        });
+        document.getElementById(sectionName + 'Section').style.display = 'block';
+
+        document.querySelectorAll('button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (button) {
+            button.classList.add('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        showSection('users', document.getElementById('showUsers'));
+
+        document.getElementById('showUsers').onclick = function() {
+            showSection('users', this);
+        };
+        document.getElementById('showAdd').onclick = function() {
+            showSection('add', this);
+        };
+    });
+</script>
+</body>
+</html>
