@@ -11,6 +11,7 @@ import ru.nikita.spring.boot.security.pp_3_1_2.model.Role;
 import ru.nikita.spring.boot.security.pp_3_1_2.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -27,7 +28,7 @@ public class UserServiceImpl implements UserService{
     }
     @Override
     @Transactional
-    public void saveUser(User user, List<String> roleNames) {
+    public User saveUser(User user, List<String> roleNames) {
         if(user.getId() > 0 && StringUtils.isBlank(user.getPassword())){
             User existingUser = userRepository.findById(user.getId()).orElseThrow(()-> new RuntimeException("Пользователь не найден"));
             user.setPassword(existingUser.getPassword());
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService{
             }
         }
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     @Override
@@ -57,6 +58,12 @@ public class UserServiceImpl implements UserService{
     @Transactional
     public void deleteUser(int id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public Optional<User> findById(int id) {
+        return userRepository.findById(id);
     }
 
 }
